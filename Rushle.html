@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barebones 4-Letter Word Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #121213;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      border-bottom: 1px solid #3a3a3c;
+      padding: 16px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+      padding: 20px;
+    }
+
+    #stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    #message {
+      min-height: 28px;
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+
+    #board {
+      display: grid;
+      grid-template-rows: repeat(5, 60px);
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      gap: 6px;
+    }
+
+    .tile {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #3a3a3c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .tile.filled {
+      border-color: #565758;
+    }
+
+    .tile.correct {
+      background: #538d4e;
+      border-color: #538d4e;
+    }
+
+    .tile.present {
+      background: #b59f3b;
+      border-color: #b59f3b;
+    }
+
+    .tile.absent {
+      background: #3a3a3c;
+      border-color: #3a3a3c;
+    }
+
+    #keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    button.key {
+      border: none;
+      border-radius: 4px;
+      background: #818384;
+      color: white;
+      font-weight: bold;
+      min-width: 40px;
+      height: 50px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    button.key.wide {
+      min-width: 64px;
+      font-size: 12px;
+    }
+
+    button.key.correct {
+      background: #538d4e;
+    }
+
+    button.key.present {
+      background: #b59f3b;
+    }
+
+    button.key.absent {
+      background: #3a3a3c;
+    }
+
+    #restart {
+      margin-top: 20px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      background: white;
+      color: #121213;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #dev-tools {
+      margin-bottom: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #c9c9c9;
+    }
+
+    #answer-display {
+      margin-top: 6px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+  </style>
+</head>
+<body>
+  <header>Word Rushle 4-Letter Prototype</header>
+
+  <main>
+    <div id="stats">
+      <span>Lives: <strong id="lives">3</strong></span>
+      <span>Score: <strong id="score">0</strong></span>
+      <span>Round: <strong id="round">1</strong></span>
+      <span>Best Score: <strong id="best-score">0</strong></span>
+      <span>Best Round: <strong id="best-round">1</strong></span>
+    </div>
+
+  <div id="dev-tools" class="hidden">
+    <div id="answer-display"></div>
+  </div>
+
+    <div id="message"></div>
+    <div id="board"></div>
+    <div id="keyboard"></div>
+    <button id="restart">Restart</button>
+  </main>
+
+  <script>
+    const WORD_LENGTH = 4;
+    const MAX_GUESSES = 5;
+
+    // Small starter word list. Later, this can come from a database.
+    const WORDS = [
+      "ABLE", "BAKE", "BARK", "BIRD", "BLUE",
+      "BOAT", "BOLD", "BOND", "CAMP", "CARD",
+      "COLD", "DARK", "DUST", "FIRE", "FISH",
+      "GAME", "GOLD", "HAND", "HARD", "JUMP",
+      "KING", "LAMP", "LAND", "LEAF", "MOON",
+      "PATH", "PLAY", "RING", "ROAD", "ROCK",
+      "SHIP", "SNOW", "STAR", "TIME", "TREE",
+      "WIND", "WOLF", "WORD", "WORK", "ZONE"
+    ];
+
+    let answer = "";
+    let currentRow = 0;
+    let currentGuess = "";
+    let gameOver = false;
+    let lives = 3;
+    let score = 0;
+    let round = 1;
+    let bestScore = Number(localStorage.getItem("bestScore")) || 0;
+    let bestRound = Number(localStorage.getItem("bestRound")) || 1;
+    let usedAnswers = [];
+
+    const board = document.getElementById("board");
+    const keyboard = document.getElementById("keyboard");
+    const message = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const livesDisplay = document.getElementById("lives");
+    const scoreDisplay = document.getElementById("score");
+    const roundDisplay = document.getElementById("round");
+    const bestScoreDisplay = document.getElementById("best-score");
+    const bestRoundDisplay = document.getElementById("best-round");
+    const devTools = document.getElementById("dev-tools");
+    const answerDisplay = document.getElementById("answer-display");
+    let devToolsVisible = false;
+
+    function startGame() {
+      lives = 3;
+      score = 0;
+      round = 1;
+      usedAnswers = [];
+      gameOver = false;
+      startRound();
+    }
+
+    function startRound() {
+      answer = getRandomWord();
+      currentRow = 0;
+      currentGuess = "";
+      message.textContent = "";
+      board.innerHTML = "";
+      keyboard.innerHTML = "";
+
+      updateStats();
+      updateAnswerDisplay();
+      createBoard();
+      createKeyboard();
+
+      console.log("Answer:", answer); // Helpful while testing. Remove later.
+    }
+
+    function getRandomWord() {
+      if (usedAnswers.length === WORDS.length) {
+        usedAnswers = [];
+      }
+
+      let word;
+
+      do {
+        word = WORDS[Math.floor(Math.random() * WORDS.length)];
+      } while (usedAnswers.includes(word));
+
+      usedAnswers.push(word);
+      return word;
+    }
+
+    function updateStats() {
+      livesDisplay.textContent = lives;
+      scoreDisplay.textContent = score;
+      roundDisplay.textContent = round;
+      bestScoreDisplay.textContent = bestScore;
+      bestRoundDisplay.textContent = bestRound;
+    }
+
+    function saveHighScores() {
+      const finalRoundReached = round;
+
+      if (finalRoundReached > bestRound) {
+        bestRound = finalRoundReached;
+        localStorage.setItem("bestRound", bestRound);
+      }
+
+      updateStats();
+    }
+
+    function updateBestScoreIfNeeded() {
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("bestScore", bestScore);
+        updateStats();
+      }
+    }
+
+    function updateAnswerDisplay() {
+      if (devToolsVisible) {
+        answerDisplay.textContent = `Testing answer: ${answer}`;
+      } else {
+        answerDisplay.textContent = "";
+      }
+    }
+
+    function createBoard() {
+      for (let row = 0; row < MAX_GUESSES; row++) {
+        const rowElement = document.createElement("div");
+        rowElement.classList.add("row");
+
+        for (let col = 0; col < WORD_LENGTH; col++) {
+          const tile = document.createElement("div");
+          tile.classList.add("tile");
+          tile.id = `tile-${row}-${col}`;
+          rowElement.appendChild(tile);
+        }
+
+        board.appendChild(rowElement);
+      }
+    }
+
+    function createKeyboard() {
+      const rows = [
+        "QWERTYUIOP",
+        "ASDFGHJKL",
+        "ZXCVBNM"
+      ];
+
+      rows.forEach((letters, index) => {
+        const rowElement = document.createElement("div");
+        rowElement.classList.add("keyboard-row");
+
+        if (index === 2) {
+          rowElement.appendChild(createKeyButton("Enter", "ENTER", true));
+        }
+
+        letters.split("").forEach(letter => {
+          rowElement.appendChild(createKeyButton(letter, letter));
+        });
+
+        if (index === 2) {
+          rowElement.appendChild(createKeyButton("Delete", "BACKSPACE", true));
+        }
+
+        keyboard.appendChild(rowElement);
+      });
+    }
+
+    function createKeyButton(label, value, wide = false) {
+      const button = document.createElement("button");
+      button.textContent = label;
+      button.classList.add("key");
+
+      if (wide) {
+        button.classList.add("wide");
+      }
+
+      button.addEventListener("click", () => handleKey(value));
+      return button;
+    }
+
+    function handleKey(key) {
+      if (gameOver) return;
+
+      if (key === "ENTER") {
+        submitGuess();
+      } else if (key === "BACKSPACE") {
+        deleteLetter();
+      } else if (/^[A-Z]$/.test(key)) {
+        addLetter(key);
+      }
+    }
+
+    function addLetter(letter) {
+      if (currentGuess.length >= WORD_LENGTH) return;
+
+      currentGuess += letter;
+      updateCurrentRow();
+    }
+
+    function deleteLetter() {
+      currentGuess = currentGuess.slice(0, -1);
+      updateCurrentRow();
+    }
+
+    function updateCurrentRow() {
+      for (let col = 0; col < WORD_LENGTH; col++) {
+        const tile = document.getElementById(`tile-${currentRow}-${col}`);
+        tile.textContent = currentGuess[col] || "";
+        tile.classList.toggle("filled", Boolean(currentGuess[col]));
+      }
+    }
+
+    function submitGuess() {
+      if (currentGuess.length !== WORD_LENGTH) {
+        showMessage("Not enough letters");
+        return;
+      }
+
+      if (!WORDS.includes(currentGuess)) {
+        showMessage("Word not in list");
+        return;
+      }
+
+      const results = checkGuess(currentGuess, answer);
+      colorTiles(currentGuess, results);
+      updateKeyboard(currentGuess, results);
+
+      if (currentGuess === answer) {
+        const guessesUsed = currentRow + 1;
+        const roundPoints = calculateScore(guessesUsed);
+
+        score += roundPoints;
+        updateBestScoreIfNeeded();
+        round++;
+        updateStats();
+
+        showMessage(`Correct! +${roundPoints} points. Next round starting...`);
+
+        setTimeout(() => {
+          startRound();
+        }, 1200);
+
+        return;
+      }
+
+      currentRow++;
+      currentGuess = "";
+
+      if (currentRow === MAX_GUESSES) {
+        lives--;
+        updateStats();
+
+        if (lives > 0) {
+          showMessage(`Wrong! Answer: ${answer}. Lives left: ${lives}`);
+
+          setTimeout(() => {
+            startRound();
+          }, 1800);
+        } else {
+          saveHighScores();
+          showMessage(`Game over! Final score: ${score}. Best score: ${bestScore}. Best round: ${bestRound}. Last answer: ${answer}`);
+          gameOver = true;
+        }
+      }
+    }
+
+    function calculateScore(guessesUsed) {
+      const basePoints = 100;
+      const guessBonus = (MAX_GUESSES - guessesUsed) * 20;
+      const roundBonus = round * 10;
+
+      return basePoints + guessBonus + roundBonus;
+    }
+
+    // Handles duplicate letters correctly.
+    // Example: answer = MOON, guess = ROOM should not over-award O matches.
+    function checkGuess(guess, answer) {
+      const result = Array(WORD_LENGTH).fill("absent");
+      const answerLetters = answer.split("");
+
+      // First pass: mark exact matches.
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (guess[i] === answer[i]) {
+          result[i] = "correct";
+          answerLetters[i] = null;
+        }
+      }
+
+      // Second pass: mark present letters.
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (result[i] === "correct") continue;
+
+        const index = answerLetters.indexOf(guess[i]);
+
+        if (index !== -1) {
+          result[i] = "present";
+          answerLetters[index] = null;
+        }
+      }
+
+      return result;
+    }
+
+    function colorTiles(guess, results) {
+      for (let col = 0; col < WORD_LENGTH; col++) {
+        const tile = document.getElementById(`tile-${currentRow}-${col}`);
+        tile.classList.add(results[col]);
+      }
+    }
+
+    function updateKeyboard(guess, results) {
+      const priority = {
+        absent: 1,
+        present: 2,
+        correct: 3
+      };
+
+      for (let i = 0; i < guess.length; i++) {
+        const letter = guess[i];
+        const result = results[i];
+
+        const keyButton = [...document.querySelectorAll("button.key")]
+          .find(button => button.textContent === letter);
+
+        if (!keyButton) continue;
+
+        const currentStatus = keyButton.dataset.status;
+
+        if (!currentStatus || priority[result] > priority[currentStatus]) {
+          keyButton.classList.remove("absent", "present", "correct");
+          keyButton.classList.add(result);
+          keyButton.dataset.status = result;
+        }
+      }
+    }
+
+    function showMessage(text) {
+      message.textContent = text;
+    }
+
+    document.addEventListener("keydown", event => {
+
+      if (event.ctrlKey && event.shiftKey && event.key.toUpperCase() === "D") {
+          devToolsVisible = !devToolsVisible;
+          devTools.classList.toggle("hidden", !devToolsVisible);
+          updateAnswerDisplay();
+          return;
+        }
+
+      const key = event.key.toUpperCase();
+
+      if (key === "ENTER") {
+        handleKey("ENTER");
+      } else if (key === "BACKSPACE") {
+        handleKey("BACKSPACE");
+      } else if (/^[A-Z]$/.test(key)) {
+        handleKey(key);
+      }
+    });
+
+    restartButton.addEventListener("click", startGame);
+
+    startGame();
+  </script>
+</body>
+</html>
