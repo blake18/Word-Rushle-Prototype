@@ -50,6 +50,20 @@
       min-height: 28px;
       margin-bottom: 16px;
       font-weight: bold;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .message-points {
+      color: #6aaa64;
+    }
+
+    .message-line {
+      margin-bottom: 4px;
+    }
+
+    .danger {
+      color: #e74c3c;
     }
 
     #board {
@@ -137,6 +151,7 @@
       background: #3a3a3c;
     }
 
+    #skip,
     #restart {
       margin-top: 20px;
       padding: 10px 16px;
@@ -146,6 +161,11 @@
       color: #121213;
       font-weight: bold;
       cursor: pointer;
+    }
+
+    #skip:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     #dev-tools {
@@ -172,7 +192,7 @@
 
   <main>
     <div id="stats">
-      <span>Lives: <strong id="lives">3</strong></span>
+      <span>Skips: <strong id="skips">1</strong></span>
       <span>Score: <strong id="score">0</strong></span>
       <span>Round: <strong id="round">1</strong></span>
       <span>Best Score: <strong id="best-score">0</strong></span>
@@ -186,12 +206,15 @@
     <div id="message"></div>
     <div id="board"></div>
     <div id="keyboard"></div>
+    <button id="skip">Skip</button>
     <button id="restart">Restart</button>
   </main>
 
   <script>
     const WORD_LENGTH = 4;
     const MAX_GUESSES = 5;
+    const STARTING_SKIPS = 1;
+    const SKIP_REWARD_INTERVAL = 5;
 
     // Small starter word list. Later, this can come from a database.
     const WORDS = [
@@ -209,7 +232,7 @@
     let currentRow = 0;
     let currentGuess = "";
     let gameOver = false;
-    let lives = 3;
+    let skips = STARTING_SKIPS;
     let score = 0;
     let round = 1;
     let bestScore = Number(localStorage.getItem("bestScore")) || 0;
@@ -220,7 +243,8 @@
     const keyboard = document.getElementById("keyboard");
     const message = document.getElementById("message");
     const restartButton = document.getElementById("restart");
-    const livesDisplay = document.getElementById("lives");
+    const skipButton = document.getElementById("skip");
+    const skipsDisplay = document.getElementById("skips");
     const scoreDisplay = document.getElementById("score");
     const roundDisplay = document.getElementById("round");
     const bestScoreDisplay = document.getElementById("best-score");
@@ -230,7 +254,7 @@
     let devToolsVisible = false;
 
     function startGame() {
-      lives = 3;
+      skips = STARTING_SKIPS;
       score = 0;
       round = 1;
       usedAnswers = [];
@@ -270,11 +294,15 @@
     }
 
     function updateStats() {
-      livesDisplay.textContent = lives;
+      skipsDisplay.textContent = skips;
       scoreDisplay.textContent = score;
       roundDisplay.textContent = round;
       bestScoreDisplay.textContent = bestScore;
       bestRoundDisplay.textContent = bestRound;
+
+      skipsDisplay.classList.toggle("danger", skips === 0);
+
+      skipButton.disabled = skips === 0 || gameOver;
     }
 
     function saveHighScores() {
@@ -409,18 +437,38 @@
 
       if (currentGuess === answer) {
         const guessesUsed = currentRow + 1;
+        const guessesLeft = MAX_GUESSES - guessesUsed;
         const roundPoints = calculateScore(guessesUsed);
+        const guessBonus = calculateGuessBonus(guessesUsed);
 
         score += roundPoints;
         updateBestScoreIfNeeded();
         round++;
+
+        const correctMessages = [
+          "+100 correct word"
+        ];
+
+        if (guessBonus > 0) {
+          correctMessages.push(`+${guessBonus} for ${guessesLeft} guesses left`);
+        }
+
+        if (round % SKIP_REWARD_INTERVAL === 0) {
+          skips++;
+          correctMessages.push(`You reached Round ${round} and earned a bonus skip!`);
+        } else {
+          correctMessages.push("<u>Next round starting...</u>");
+        }
+
+        showMessage(correctMessages);
+        
         updateStats();
 
-        showMessage(`Correct! +${roundPoints} points. Next round starting...`);
+ 
 
         setTimeout(() => {
           startRound();
-        }, 1200);
+        }, 1800);
 
         return;
       }
@@ -429,30 +477,45 @@
       currentGuess = "";
 
       if (currentRow === MAX_GUESSES) {
-        lives--;
-        updateStats();
-
-        if (lives > 0) {
-          showMessage(`Wrong! Answer: ${answer}. Lives left: ${lives}`);
-
-          setTimeout(() => {
-            startRound();
-          }, 1800);
+        if (skips > 0) {
+          skipWord();
         } else {
           saveHighScores();
-          showMessage(`Game over! Final score: ${score}. Best score: ${bestScore}. Best round: ${bestRound}. Last answer: ${answer}`);
+          showMessage(`Run over! Final score: ${score}. Best score: ${bestScore}. Best round: ${bestRound}. Last answer: ${answer}`);
           gameOver = true;
+          updateStats();
         }
       }
     }
 
+    function skipWord() {
+      if (gameOver || skips === 0) return;
+
+      skips--;
+      round++;
+      updateStats();
+
+      showMessage(`Skipped! Answer was: ${answer}`);
+
+      setTimeout(() => {
+        startRound();
+      }, 1800);
+    }
+
+    function calculateGuessBonus(guessesUsed) {
+      const guessesLeft = MAX_GUESSES - guessesUsed;
+      const bonusPerGuessLeft = 25;
+
+      return guessesLeft * bonusPerGuessLeft;
+    }
+
     function calculateScore(guessesUsed) {
       const basePoints = 100;
-      const guessBonus = (MAX_GUESSES - guessesUsed) * 20;
-      const roundBonus = round * 10;
+      const guessBonus = calculateGuessBonus(guessesUsed);
 
-      return basePoints + guessBonus + roundBonus;
+      return basePoints + guessBonus;
     }
+
 
     // Handles duplicate letters correctly.
     // Example: answer = MOON, guess = ROOM should not over-award O matches.
@@ -516,8 +579,18 @@
       }
     }
 
-    function showMessage(text) {
-      message.textContent = text;
+    function showMessage(lines) {
+      if (Array.isArray(lines)) {
+        message.innerHTML = lines.map(line => {
+          if (line.startsWith("+")) {
+            return `<div class="message-line message-points">${line}</div>`;
+          }
+
+          return `<div class="message-line">${line}</div>`;
+        }).join("");
+      } else {
+        message.textContent = lines;
+      }
     }
 
     document.addEventListener("keydown", event => {
@@ -541,6 +614,7 @@
     });
 
     restartButton.addEventListener("click", startGame);
+    skipButton.addEventListener("click", skipWord);
 
     startGame();
   </script>
