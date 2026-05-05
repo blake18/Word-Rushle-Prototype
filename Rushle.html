@@ -14,10 +14,53 @@
       font-family: Arial, sans-serif;
       background: #121213;
       color: white;
+      min-height: 100vh;
+    }
+
+    #app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    #sidebar {
+      width: 220px;
+      background: #1f1f21;
+      border-right: 1px solid #3a3a3c;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+      gap: 12px;
+    }
+
+    #sidebar-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .sidebar-button {
+      border: none;
+      border-radius: 4px;
+      background: #3a3a3c;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .sidebar-button:hover {
+      background: #565758;
+    }
+
+    .sidebar-button.active {
+      background: #538d4e;
+    }
+
+    #content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
@@ -68,7 +111,6 @@
 
     #board {
       display: grid;
-      grid-template-rows: repeat(5, 60px);
       gap: 6px;
       margin-bottom: 24px;
     }
@@ -188,7 +230,18 @@
   </style>
 </head>
 <body>
-  <header>Word Rushle 4-Letter Prototype</header>
+  <div id="app">
+    <aside id="sidebar">
+      <div id="sidebar-title">Word Rushle</div>
+
+      <button class="sidebar-button" data-page="daily">Daily</button>
+      <button class="sidebar-button active" data-page="endless">Endless</button>
+      <button class="sidebar-button" data-page="stats">Stats</button>
+      <button class="sidebar-button" data-page="how-to-play">How to Play</button>
+    </aside>
+
+    <div id="content">
+      <header>Word Rushle Prototype</header>
 
   <main>
     <div id="stats">
@@ -208,11 +261,14 @@
     <div id="keyboard"></div>
     <button id="skip">Skip</button>
     <button id="restart">Restart</button>
-  </main>
+
+      </main>
+    </div>
+  </div>
 
   <script>
     const WORD_LENGTH = 4;
-    const MAX_GUESSES = 5;
+    const STARTING_GUESSES = 6;
     const STARTING_SKIPS = 1;
     const SKIP_REWARD_INTERVAL = 5;
 
@@ -238,6 +294,7 @@
     let bestScore = Number(localStorage.getItem("bestScore")) || 0;
     let bestRound = Number(localStorage.getItem("bestRound")) || 1;
     let usedAnswers = [];
+    
 
     const board = document.getElementById("board");
     const keyboard = document.getElementById("keyboard");
@@ -251,6 +308,7 @@
     const bestRoundDisplay = document.getElementById("best-round");
     const devTools = document.getElementById("dev-tools");
     const answerDisplay = document.getElementById("answer-display");
+    const sidebarButtons = document.querySelectorAll(".sidebar-button");
     let devToolsVisible = false;
 
     function startGame() {
@@ -305,6 +363,22 @@
       skipButton.disabled = skips === 0 || gameOver;
     }
 
+    function getMaxGuessesForRound() {
+      if (round >= 20) {
+        return 3;
+      }
+
+      if (round >= 10) {
+        return 4;
+      }
+
+      if (round >= 5) {
+        return 5;
+      }
+
+      return STARTING_GUESSES;
+    }
+
     function saveHighScores() {
       const finalRoundReached = round;
 
@@ -333,7 +407,9 @@
     }
 
     function createBoard() {
-      for (let row = 0; row < MAX_GUESSES; row++) {
+      const maxGuesses = getMaxGuessesForRound();
+
+      for (let row = 0; row < maxGuesses; row++) {
         const rowElement = document.createElement("div");
         rowElement.classList.add("row");
 
@@ -437,13 +513,19 @@
 
       if (currentGuess === answer) {
         const guessesUsed = currentRow + 1;
-        const guessesLeft = MAX_GUESSES - guessesUsed;
+        const guessesLeft = getMaxGuessesForRound() - guessesUsed;
         const roundPoints = calculateScore(guessesUsed);
         const guessBonus = calculateGuessBonus(guessesUsed);
 
         score += roundPoints;
         updateBestScoreIfNeeded();
+
+        const oldMaxGuesses = getMaxGuessesForRound();
+
         round++;
+
+        
+const newMaxGuesses = getMaxGuessesForRound();
 
         const correctMessages = [
           "+100 correct word"
@@ -451,6 +533,10 @@
 
         if (guessBonus > 0) {
           correctMessages.push(`+${guessBonus} for ${guessesLeft} guesses left`);
+        }
+
+        if (newMaxGuesses < oldMaxGuesses) {
+          correctMessages.push("Difficulty rising, you have less guesses now");
         }
 
         if (round % SKIP_REWARD_INTERVAL === 0) {
@@ -476,7 +562,7 @@
       currentRow++;
       currentGuess = "";
 
-      if (currentRow === MAX_GUESSES) {
+      if (currentRow === getMaxGuessesForRound()) {
         if (skips > 0) {
           skipWord();
         } else {
@@ -503,10 +589,11 @@
     }
 
     function calculateGuessBonus(guessesUsed) {
-      const guessesLeft = MAX_GUESSES - guessesUsed;
-      const bonusPerGuessLeft = 25;
+      const maxGuesses = getMaxGuessesForRound();
+      const guessesLeft = maxGuesses - guessesUsed;
+      const maxGuessBonus = 100;
 
-      return guessesLeft * bonusPerGuessLeft;
+      return Math.round((guessesLeft / (maxGuesses - 1)) * maxGuessBonus);
     }
 
     function calculateScore(guessesUsed) {
@@ -586,10 +673,27 @@
             return `<div class="message-line message-points">${line}</div>`;
           }
 
+          if (line.startsWith("Difficulty rising")) {
+            return `<div class="message-line danger">${line}</div>`;
+          }
+
           return `<div class="message-line">${line}</div>`;
         }).join("");
       } else {
         message.textContent = lines;
+      }
+    }
+
+    function handleSidebarClick(button) {
+      sidebarButtons.forEach(btn => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      const page = button.dataset.page;
+
+      if (page === "endless") {
+        showMessage("");
+      } else {
+        showMessage(`${button.textContent} page coming soon.`);
       }
     }
 
@@ -615,6 +719,11 @@
 
     restartButton.addEventListener("click", startGame);
     skipButton.addEventListener("click", skipWord);
+
+    sidebarButtons.forEach(button => {
+      button.addEventListener("click", () => handleSidebarClick(button));
+    });
+
 
     startGame();
   </script>
