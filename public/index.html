@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word Rushle</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #121213;
+      color: white;
+      min-height: 100vh;
+    }
+
+    #app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    #sidebar {
+      width: 220px;
+      background: #1f1f21;
+      border-right: 1px solid #3a3a3c;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #sidebar-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .sidebar-button {
+      border: none;
+      border-radius: 4px;
+      background: #3a3a3c;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .sidebar-button:hover {
+      background: #565758;
+    }
+
+    .sidebar-button.active {
+      background: #538d4e;
+    }
+
+    #content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      border-bottom: 1px solid #3a3a3c;
+      padding: 16px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+      padding: 20px;
+    }
+
+    #stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    #message {
+      min-height: 28px;
+      margin-bottom: 16px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .message-points {
+      color: #6aaa64;
+    }
+
+    .message-line {
+      margin-bottom: 4px;
+    }
+
+    .danger {
+      color: #e74c3c;
+    }
+
+    #board {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      gap: 6px;
+    }
+
+    .tile {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #3a3a3c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .tile.filled {
+      border-color: #565758;
+    }
+
+    .tile.correct {
+      background: #538d4e;
+      border-color: #538d4e;
+    }
+
+    .tile.present {
+      background: #b59f3b;
+      border-color: #b59f3b;
+    }
+
+    .tile.absent {
+      background: #3a3a3c;
+      border-color: #3a3a3c;
+    }
+
+    #keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    button.key {
+      border: none;
+      border-radius: 4px;
+      background: #818384;
+      color: white;
+      font-weight: bold;
+      min-width: 40px;
+      height: 50px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    button.key.wide {
+      min-width: 64px;
+      font-size: 12px;
+    }
+
+    button.key.correct {
+      background: #538d4e;
+    }
+
+    button.key.present {
+      background: #b59f3b;
+    }
+
+    button.key.absent {
+      background: #3a3a3c;
+    }
+
+    #skip,
+    #restart {
+      margin-top: 20px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      background: white;
+      color: #121213;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #skip:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #dev-tools {
+      margin-bottom: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #c9c9c9;
+    }
+
+    #answer-display {
+      margin-top: 6px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #run-summary {
+      background: #1f1f21;
+      border: 1px solid #3a3a3c;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+      min-width: 260px;
+    }
+
+    #run-summary h2 {
+      margin-top: 0;
+    }
+
+    #run-summary p {
+      margin: 8px 0;
+    }
+
+    #save-score-button,
+    #confirm-save-score,
+    #cancel-save-score {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 4px;
+      background: white;
+      color: #121213;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #score-saved-text {
+      margin-top: 12px;
+      color: #6aaa64;
+      font-weight: bold;
+    }
+
+    #name-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    #name-modal.hidden {
+      display: none;
+    }
+
+    #name-modal-box {
+      background: #1f1f21;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      min-width: 300px;
+    }
+
+    #guest-name-input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: 1px solid #3a3a3c;
+      border-radius: 4px;
+      background: #121213;
+      color: white;
+    }
+
+    #name-modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .leaderboard-entry {
+      display: grid;
+      grid-template-columns: 40px 1fr 80px 80px 90px 140px;
+      gap: 10px;
+      padding: 10px;
+      border-bottom: 1px solid #3a3a3c;
+      text-align: left;
+    }
+
+    .leaderboard-entry.header {
+      font-weight: bold;
+      color: #c9c9c9;
+    }
+
+    .leaderboard-empty {
+      color: #c9c9c9;
+    }
+
+    #leaderboard-scope-toggle {
+      display: flex;
+      justify-content: center;
+      margin: 12px auto 12px;
+      background: #121213;
+      border: 1px solid #3a3a3c;
+      border-radius: 999px;
+      padding: 4px;
+      width: fit-content;
+    }
+
+    .scope-button {
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      color: #c9c9c9;
+      padding: 8px 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .scope-button.active {
+      background: #538d4e;
+      color: white;
+    }
+
+    #friends-toggle-note {
+      color: #c9c9c9;
+      font-size: 14px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .leaderboard-action {
+      padding: 6px 8px;
+      border: none;
+      border-radius: 4px;
+      background: white;
+      color: #121213;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 4px;
+    }
+
+    .danger-button {
+      background: #e74c3c;
+      color: white;
+    }
+
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div id="sidebar-title">Word Rushle</div>
+
+      <button class="sidebar-button active" data-page="daily">Daily</button>
+      <button class="sidebar-button" data-page="endless">Endless</button>
+      <button class="sidebar-button" data-page="leaderboard">Leaderboard</button>
+      <button class="sidebar-button" data-page="stats">Stats</button>
+      <button class="sidebar-button" data-page="how-to-play">How to Play</button>
+    </aside>
+
+    <div id="content">
+      <header>Word Rushle Prototype</header>
+
+  <main>
+    <div id="stats">
+      <span>Skips: <strong id="skips">1</strong></span>
+      <span>Score: <strong id="score">0</strong></span>
+      <span>Round: <strong id="round">1</strong></span>
+      <span>Best Score: <strong id="best-score">0</strong></span>
+      <span>Best Round: <strong id="best-round">1</strong></span>
+    </div>
+
+  <div id="dev-tools" class="hidden">
+    <div id="answer-display"></div>
+  </div>
+
+    <div id="message"></div>
+
+    <div id="run-summary" class="hidden">
+      <h2>Run Over</h2>
+      <p>Player: <strong id="summary-player"></strong></p>
+      <p>Mode: <strong id="summary-mode"></strong></p>
+      <p>Final Score: <strong id="summary-score"></strong></p>
+      <p>Round Reached: <strong id="summary-round"></strong></p>
+      <p>Best Score: <strong id="summary-best-score"></strong></p>
+      <p>Best Round: <strong id="summary-best-round"></strong></p>
+
+      <button id="save-score-button">Save Score</button>
+      <div id="score-saved-text" class="hidden">Score saved</div>
+    </div>
+
+    <div id="leaderboard-panel" class="hidden">
+      <h2>Leaderboard</h2>
+
+      <div id="leaderboard-scope-toggle">
+        <button class="scope-button active" data-scope="global">Global</button>
+        <button class="scope-button" data-scope="friends">Friends</button>
+      </div>
+
+      <p id="friends-toggle-note" class="hidden">
+        Friends filtering coming soon.
+      </p>
+
+      <div id="leaderboard-list"></div>
+    </div>
+
+    <div id="name-modal" class="hidden">
+      <div id="name-modal-box">
+        <h3>Enter a guest name:</h3>
+        <input id="guest-name-input" type="text" maxlength="16" placeholder="Guest name" />
+        <div id="name-modal-buttons">
+          <button id="confirm-save-score">Save</button>
+          <button id="cancel-save-score">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="board"></div>
+    <div id="keyboard"></div>
+    <button id="skip">Skip</button>
+    <button id="restart">Restart</button>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const WORD_LENGTH = 4;
+    const STARTING_GUESSES = 6;
+    const STARTING_SKIPS = 1;
+    const SKIP_REWARD_INTERVAL = 5;
+
+    // Small starter word list. Later, this can come from a database.
+    const WORDS = [
+      "ABLE", "BAKE", "BARK", "BIRD", "BLUE",
+      "BOAT", "BOLD", "BOND", "CAMP", "CARD",
+      "COLD", "DARK", "DUST", "FIRE", "FISH",
+      "GAME", "GOLD", "HAND", "HARD", "JUMP",
+      "KING", "LAMP", "LAND", "LEAF", "MOON",
+      "PATH", "PLAY", "RING", "ROAD", "ROCK",
+      "SHIP", "SNOW", "STAR", "TIME", "TREE",
+      "WIND", "WOLF", "WORD", "WORK", "ZONE"
+    ];
+
+    let answer = "";
+    let currentRow = 0;
+    let currentGuess = "";
+    let gameOver = false;
+    let skips = STARTING_SKIPS;
+    let score = 0;
+    let round = 1;
+    let bestScore = Number(localStorage.getItem("bestScore")) || 0;
+    let bestRound = Number(localStorage.getItem("bestRound")) || 1;
+    let usedAnswers = [];
+    
+
+    const board = document.getElementById("board");
+    const keyboard = document.getElementById("keyboard");
+    const message = document.getElementById("message");
+    const restartButton = document.getElementById("restart");
+    const skipButton = document.getElementById("skip");
+    const skipsDisplay = document.getElementById("skips");
+    const scoreDisplay = document.getElementById("score");
+    const roundDisplay = document.getElementById("round");
+    const bestScoreDisplay = document.getElementById("best-score");
+    const bestRoundDisplay = document.getElementById("best-round");
+    const devTools = document.getElementById("dev-tools");
+    const answerDisplay = document.getElementById("answer-display");
+    const sidebarButtons = document.querySelectorAll(".sidebar-button");
+    
+    const runSummary = document.getElementById("run-summary");
+    const summaryMode = document.getElementById("summary-mode");
+    const summaryScore = document.getElementById("summary-score");
+    const summaryRound = document.getElementById("summary-round");
+    const summaryBestScore = document.getElementById("summary-best-score");
+    const summaryBestRound = document.getElementById("summary-best-round");
+
+    const summaryPlayer = document.getElementById("summary-player");
+
+    const saveScoreButton = document.getElementById("save-score-button");
+    const scoreSavedText = document.getElementById("score-saved-text");
+    const nameModal = document.getElementById("name-modal");
+    const guestNameInput = document.getElementById("guest-name-input");
+    const confirmSaveScoreButton = document.getElementById("confirm-save-score");
+    const cancelSaveScoreButton = document.getElementById("cancel-save-score");
+
+    const leaderboardPanel = document.getElementById("leaderboard-panel");
+    const leaderboardList = document.getElementById("leaderboard-list");
+    const scopeButtons = document.querySelectorAll(".scope-button");
+    const friendsToggleNote = document.getElementById("friends-toggle-note");
+    let leaderboardScope = "global";
+
+    let devToolsVisible = false;
+    let gameMode = "daily";
+
+    let playerName = localStorage.getItem("playerName") || "Guest";
+    let scoreSaved = false;
+
+    
+    function startGame(mode = gameMode) {
+      gameMode = mode;
+      scoreSaved = false;
+      runSummary.classList.add("hidden");
+      leaderboardPanel.classList.add("hidden");
+      saveScoreButton.classList.remove("hidden");
+      scoreSavedText.classList.add("hidden");
+      setGameUIVisible(true);
+      updateModeButtons();
+
+      if (gameMode === "daily" && isDailyCompleted()) {
+        gameOver = true;
+        board.innerHTML = "";
+        keyboard.innerHTML = "";
+        setGameUIVisible(false);
+        updateStats();
+        updateModeButtons();
+        showDailyCompletedMessage();
+        return;
+      }
+
+      skips = STARTING_SKIPS;
+      score = 0;
+      round = 1;
+      usedAnswers = [];
+      gameOver = false;
+      startRound();
+    }
+
+    function startRound() {
+      answer = getRandomWord();
+      currentRow = 0;
+      currentGuess = "";
+      message.textContent = "";
+      board.innerHTML = "";
+      keyboard.innerHTML = "";
+
+      updateStats();
+      updateAnswerDisplay();
+      createBoard();
+      createKeyboard();
+
+      console.log("Answer:", answer); // Helpful while testing. Remove later.
+    }
+
+    function getRandomWord() {
+      if (usedAnswers.length === WORDS.length) {
+        usedAnswers = [];
+      }
+
+      let word;
+
+      do {
+        word = WORDS[Math.floor(Math.random() * WORDS.length)];
+      } while (usedAnswers.includes(word));
+
+      usedAnswers.push(word);
+      return word;
+    }
+
+    function updateStats() {
+      skipsDisplay.textContent = skips;
+      scoreDisplay.textContent = score;
+      roundDisplay.textContent = round;
+      bestScoreDisplay.textContent = bestScore;
+      bestRoundDisplay.textContent = bestRound;
+
+      skipsDisplay.classList.toggle("danger", skips === 0);
+
+      skipButton.disabled = skips === 0 || gameOver;
+    }
+
+    function updateModeButtons() {
+      if (gameMode === "daily") {
+        restartButton.classList.add("hidden");
+      } else {
+        restartButton.classList.remove("hidden");
+      }
+    }
+
+    function getMaxGuessesForRound() {
+      if (round >= 20) {
+        return 3;
+      }
+
+      if (round >= 10) {
+        return 4;
+      }
+
+      if (round >= 5) {
+        return 5;
+      }
+
+      return STARTING_GUESSES;
+    }
+
+    function saveHighScores() {
+      const finalRoundReached = round;
+
+      if (finalRoundReached > bestRound) {
+        bestRound = finalRoundReached;
+        localStorage.setItem("bestRound", bestRound);
+      }
+
+      updateStats();
+    }
+
+    function getTodayDateKey() {
+      return new Date().toISOString().split("T")[0];
+    }
+
+    function isDailyCompleted() {
+      return localStorage.getItem("dailyCompletedDate") === getTodayDateKey();
+    }
+
+    function saveDailyResult() {
+      localStorage.setItem("dailyCompletedDate", getTodayDateKey());
+      localStorage.setItem("dailyScore", score);
+      localStorage.setItem("dailyRound", round);
+    }
+
+    function showDailyCompletedMessage() {
+      const dailyScore = localStorage.getItem("dailyScore") || 0;
+      const dailyRound = localStorage.getItem("dailyRound") || 1;
+
+      summaryPlayer.textContent = playerName;
+      summaryMode.textContent = "Daily";
+      summaryScore.textContent = dailyScore;
+      summaryRound.textContent = dailyRound;
+      summaryBestScore.textContent = bestScore;
+      summaryBestRound.textContent = bestRound;
+
+      saveScoreButton.classList.add("hidden");
+      scoreSavedText.classList.remove("hidden");
+
+      showMessage("Daily run already completed.");
+      runSummary.classList.remove("hidden");
+    }
+
+    function setGameUIVisible(isVisible) {
+      const displayValue = isVisible ? "" : "none";
+
+      document.getElementById("stats").style.display = displayValue;
+      board.style.display = displayValue;
+      keyboard.style.display = displayValue;
+      skipButton.style.display = displayValue;
+      
+      if (isVisible && gameMode !== "daily") {
+        restartButton.style.display = "";
+      } else {
+        restartButton.style.display = "none";
+      }
+    }
+
+    function updateBestScoreIfNeeded() {
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("bestScore", bestScore);
+        updateStats();
+      }
+    }
+
+    function updateAnswerDisplay() {
+      if (devToolsVisible) {
+        answerDisplay.textContent = `Testing answer: ${answer}`;
+      } else {
+        answerDisplay.textContent = "";
+      }
+    }
+
+    function resetDailyRunForTesting() {
+      localStorage.removeItem("dailyCompletedDate");
+      localStorage.removeItem("dailyScore");
+      localStorage.removeItem("dailyRound");
+
+      showMessage("Daily run reset for testing.");
+    }
+
+    function createBoard() {
+      const maxGuesses = getMaxGuessesForRound();
+
+      for (let row = 0; row < maxGuesses; row++) {
+        const rowElement = document.createElement("div");
+        rowElement.classList.add("row");
+
+        for (let col = 0; col < WORD_LENGTH; col++) {
+          const tile = document.createElement("div");
+          tile.classList.add("tile");
+          tile.id = `tile-${row}-${col}`;
+          rowElement.appendChild(tile);
+        }
+
+        board.appendChild(rowElement);
+      }
+    }
+
+    function createKeyboard() {
+      const rows = [
+        "QWERTYUIOP",
+        "ASDFGHJKL",
+        "ZXCVBNM"
+      ];
+
+      rows.forEach((letters, index) => {
+        const rowElement = document.createElement("div");
+        rowElement.classList.add("keyboard-row");
+
+        if (index === 2) {
+          rowElement.appendChild(createKeyButton("Enter", "ENTER", true));
+        }
+
+        letters.split("").forEach(letter => {
+          rowElement.appendChild(createKeyButton(letter, letter));
+        });
+
+        if (index === 2) {
+          rowElement.appendChild(createKeyButton("Delete", "BACKSPACE", true));
+        }
+
+        keyboard.appendChild(rowElement);
+      });
+    }
+
+    function createKeyButton(label, value, wide = false) {
+      const button = document.createElement("button");
+      button.textContent = label;
+      button.classList.add("key");
+
+      if (wide) {
+        button.classList.add("wide");
+      }
+
+      button.addEventListener("click", () => handleKey(value));
+      return button;
+    }
+
+    function handleKey(key) {
+      if (gameOver) return;
+
+      if (key === "ENTER") {
+        submitGuess();
+      } else if (key === "BACKSPACE") {
+        deleteLetter();
+      } else if (/^[A-Z]$/.test(key)) {
+        addLetter(key);
+      }
+    }
+
+    function addLetter(letter) {
+      if (currentGuess.length >= WORD_LENGTH) return;
+
+      currentGuess += letter;
+      updateCurrentRow();
+    }
+
+    function deleteLetter() {
+      currentGuess = currentGuess.slice(0, -1);
+      updateCurrentRow();
+    }
+
+    function updateCurrentRow() {
+      for (let col = 0; col < WORD_LENGTH; col++) {
+        const tile = document.getElementById(`tile-${currentRow}-${col}`);
+        tile.textContent = currentGuess[col] || "";
+        tile.classList.toggle("filled", Boolean(currentGuess[col]));
+      }
+    }
+
+    function submitGuess() {
+      if (currentGuess.length !== WORD_LENGTH) {
+        showMessage("Not enough letters");
+        return;
+      }
+
+      if (!WORDS.includes(currentGuess)) {
+        showMessage("Word not in list");
+        return;
+      }
+
+      const results = checkGuess(currentGuess, answer);
+      colorTiles(currentGuess, results);
+      updateKeyboard(currentGuess, results);
+
+      if (currentGuess === answer) {
+        const guessesUsed = currentRow + 1;
+        const guessesLeft = getMaxGuessesForRound() - guessesUsed;
+        const roundPoints = calculateScore(guessesUsed);
+        const guessBonus = calculateGuessBonus(guessesUsed);
+
+        score += roundPoints;
+        updateBestScoreIfNeeded();
+
+        const oldMaxGuesses = getMaxGuessesForRound();
+
+        round++;
+
+        
+        const newMaxGuesses = getMaxGuessesForRound();
+
+        const correctMessages = [
+          "+100 correct word"
+        ];
+
+        if (guessBonus > 0) {
+          correctMessages.push(`+${guessBonus} for ${guessesLeft} guesses left`);
+        }
+
+        if (newMaxGuesses < oldMaxGuesses) {
+          correctMessages.push("Difficulty rising, you have less guesses now");
+        }
+
+        if (round % SKIP_REWARD_INTERVAL === 0) {
+          skips++;
+          correctMessages.push(`You reached Round ${round} and earned a bonus skip!`);
+        } else {
+          correctMessages.push("<u>Next round starting...</u>");
+        }
+
+        showMessage(correctMessages);
+        
+        updateStats();
+
+ 
+
+        setTimeout(() => {
+          startRound();
+        }, 1800);
+
+        return;
+      }
+
+      currentRow++;
+      currentGuess = "";
+
+      if (currentRow === getMaxGuessesForRound()) {
+        if (skips > 0) {
+          skipWord();
+        } else {
+          saveHighScores();
+
+          if (gameMode === "daily") {
+            saveDailyResult();
+          }
+
+          gameOver = true;
+          updateStats();
+
+          showMessage(`Last answer: ${answer}`);
+          showRunSummary();
+        }
+      }
+    }
+
+    function skipWord() {
+      if (gameOver || skips === 0) return;
+
+      skips--;
+      round++;
+      updateStats();
+
+      showMessage(`Skipped! Answer was: ${answer}`);
+
+      setTimeout(() => {
+        startRound();
+      }, 1800);
+    }
+
+    function calculateGuessBonus(guessesUsed) {
+      const maxGuesses = getMaxGuessesForRound();
+      const guessesLeft = maxGuesses - guessesUsed;
+      const maxGuessBonus = 100;
+
+      return Math.round((guessesLeft / (maxGuesses - 1)) * maxGuessBonus);
+    }
+
+    function calculateScore(guessesUsed) {
+      const basePoints = 100;
+      const guessBonus = calculateGuessBonus(guessesUsed);
+
+      return basePoints + guessBonus;
+    }
+
+    function showRunSummary() {
+      summaryPlayer.textContent = playerName;
+      summaryMode.textContent = gameMode === "daily" ? "Daily" : "Endless";
+      summaryScore.textContent = score;
+      summaryRound.textContent = round;
+      summaryBestScore.textContent = bestScore;
+      summaryBestRound.textContent = bestRound;
+
+      saveScoreButton.classList.remove("hidden");
+      scoreSavedText.classList.add("hidden");
+
+      runSummary.classList.remove("hidden");
+    }
+
+    // Handles duplicate letters correctly.
+    // Example: answer = MOON, guess = ROOM should not over-award O matches.
+    function checkGuess(guess, answer) {
+      const result = Array(WORD_LENGTH).fill("absent");
+      const answerLetters = answer.split("");
+
+      // First pass: mark exact matches.
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (guess[i] === answer[i]) {
+          result[i] = "correct";
+          answerLetters[i] = null;
+        }
+      }
+
+      // Second pass: mark present letters.
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (result[i] === "correct") continue;
+
+        const index = answerLetters.indexOf(guess[i]);
+
+        if (index !== -1) {
+          result[i] = "present";
+          answerLetters[index] = null;
+        }
+      }
+
+      return result;
+    }
+
+    function colorTiles(guess, results) {
+      for (let col = 0; col < WORD_LENGTH; col++) {
+        const tile = document.getElementById(`tile-${currentRow}-${col}`);
+        tile.classList.add(results[col]);
+      }
+    }
+
+    function updateKeyboard(guess, results) {
+      const priority = {
+        absent: 1,
+        present: 2,
+        correct: 3
+      };
+
+      for (let i = 0; i < guess.length; i++) {
+        const letter = guess[i];
+        const result = results[i];
+
+        const keyButton = [...document.querySelectorAll("button.key")]
+          .find(button => button.textContent === letter);
+
+        if (!keyButton) continue;
+
+        const currentStatus = keyButton.dataset.status;
+
+        if (!currentStatus || priority[result] > priority[currentStatus]) {
+          keyButton.classList.remove("absent", "present", "correct");
+          keyButton.classList.add(result);
+          keyButton.dataset.status = result;
+        }
+      }
+    }
+
+    function showMessage(lines) {
+      if (Array.isArray(lines)) {
+        message.innerHTML = lines.map(line => {
+          if (line.startsWith("+")) {
+            return `<div class="message-line message-points">${line}</div>`;
+          }
+
+          if (line.startsWith("Difficulty rising")) {
+            return `<div class="message-line danger">${line}</div>`;
+          }
+
+          return `<div class="message-line">${line}</div>`;
+        }).join("");
+      } else {
+        message.textContent = lines;
+      }
+    }
+
+    function handleSidebarClick(button) {
+      sidebarButtons.forEach(btn => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      const page = button.dataset.page;
+
+      if (page === "daily") {
+        startGame("daily");
+      } else if (page === "endless") {
+        startGame("endless");
+      } else if (page === "leaderboard") {
+        showLeaderboardPanel();
+      } else {
+          setGameUIVisible(false);
+          runSummary.classList.add("hidden");
+          leaderboardPanel.classList.add("hidden");
+          showMessage(`${button.textContent} page coming soon.`);
+      }
+    }
+
+    function openNameModal() {
+      guestNameInput.value = playerName === "Guest" ? "" : playerName;
+      nameModal.classList.remove("hidden");
+      guestNameInput.focus();
+    }
+
+    function closeNameModal() {
+      nameModal.classList.add("hidden");
+    }
+
+    async function saveScoreAsGuest() {
+      const name = guestNameInput.value.trim();
+
+      if (name === "") {
+        playerName = "Guest";
+      } else {
+        playerName = name;
+      }
+
+      localStorage.setItem("playerName", playerName);
+      summaryPlayer.textContent = playerName;
+
+      const scoreData = {
+        playerName: playerName,
+        score: score,
+        round: round,
+        mode: gameMode
+      };
+
+      try {
+        const response = await fetch("/api/scores", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(scoreData)
+        });
+
+        if (!response.ok) {
+          throw new Error("Score failed to save.");
+        }
+
+        scoreSaved = true;
+        saveScoreButton.classList.add("hidden");
+        scoreSavedText.classList.remove("hidden");
+
+        closeNameModal();
+      } catch (error) {
+        console.error(error);
+        showMessage("Could not save score. Make sure the server is running.");
+      }
+    }
+
+    function showLeaderboardPanel() {
+      setGameUIVisible(false);
+      runSummary.classList.add("hidden");
+      leaderboardPanel.classList.remove("hidden");
+      renderLeaderboard();
+      showMessage("");
+    }
+    
+    function getSavedScores() {
+      return JSON.parse(localStorage.getItem("leaderboardScores")) || [];
+    }
+
+    function saveScoreToLocalLeaderboard() {
+      const savedScores = getSavedScores();
+
+      const scoreEntry = {
+        playerName: playerName,
+        score: score,
+        round: round,
+        mode: gameMode,
+        date: new Date().toLocaleDateString()
+      };
+
+      savedScores.push(scoreEntry);
+
+      savedScores.sort((a, b) => b.score - a.score);
+
+      const topScores = savedScores.slice(0, 10);
+
+      localStorage.setItem("leaderboardScores", JSON.stringify(topScores));
+    }
+
+    async function renderLeaderboard() {
+      try {
+        const response = await fetch("/api/scores");
+
+        if (!response.ok) {
+          throw new Error("Failed to load leaderboard.");
+        }
+
+        const savedScores = await response.json();
+
+        if (savedScores.length === 0) {
+          leaderboardList.innerHTML = `<p class="leaderboard-empty">No scores saved yet.</p>`;
+          return;
+        }
+
+        leaderboardList.innerHTML = `
+          <div class="leaderboard-entry header">
+            <span>#</span>
+            <span>Player</span>
+            <span>Score</span>
+            <span>Round</span>
+            <span>Mode</span>
+            <span>Actions</span>
+          </div>
+        `;
+
+        savedScores.forEach((entry, index) => {
+          leaderboardList.innerHTML += `
+            <div class="leaderboard-entry">
+              <span>${index + 1}</span>
+              <span>${entry.player_name}</span>
+              <span>${entry.score}</span>
+              <span>${entry.round_reached}</span>
+              <span>${entry.mode}</span>
+              <span>
+                <button class="leaderboard-action" onclick="editScoreName(${entry.id}, '${entry.player_name}')">Edit</button>
+                <button class="leaderboard-action danger-button" onclick="deleteScore(${entry.id})">Delete</button>
+              </span>
+            </div>
+          `;
+        });
+      } catch (error) {
+        console.error(error);
+        leaderboardList.innerHTML = `<p class="leaderboard-empty">Could not load leaderboard.</p>`;
+      }
+    }
+
+    async function editScoreName(scoreId, currentName) {
+      const newName = prompt("Enter updated player name:", currentName);
+
+      if (newName === null) {
+        return;
+      }
+
+      if (newName.trim() === "") {
+        showMessage("Player name cannot be empty.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/scores/${scoreId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            playerName: newName.trim()
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update score.");
+        }
+
+        showMessage("Score updated.");
+        renderLeaderboard();
+      } catch (error) {
+        console.error(error);
+        showMessage("Could not update score.");
+      }
+    }
+
+    async function deleteScore(scoreId) {
+      const confirmed = confirm("Delete this score?");
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/scores/${scoreId}`, {
+          method: "DELETE"
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete score.");
+        }
+
+        showMessage("Score deleted.");
+        renderLeaderboard();
+      } catch (error) {
+        console.error(error);
+        showMessage("Could not delete score.");
+      }
+    }
+
+    document.addEventListener("keydown", event => {
+
+        if (event.target.tagName === "INPUT") {
+          return;
+        }
+      
+      if (event.ctrlKey && event.shiftKey && event.key.toUpperCase() === "D") {
+          devToolsVisible = !devToolsVisible;
+          devTools.classList.toggle("hidden", !devToolsVisible);
+          updateAnswerDisplay();
+          return;
+        }
+
+      if (event.ctrlKey && event.shiftKey && event.key.toUpperCase() === "R") {
+        resetDailyRunForTesting();
+
+        if (gameMode === "daily") {
+          startGame("daily");
+        }
+
+        return;
+      }
+
+      const key = event.key.toUpperCase();
+
+      if (key === "ENTER") {
+        event.preventDefault();
+        handleKey("ENTER");
+      } else if (key === "BACKSPACE") {
+        event.preventDefault();
+        handleKey("BACKSPACE");
+      } else if (/^[A-Z]$/.test(key)) {
+        handleKey(key);
+      }
+    });
+
+    restartButton.addEventListener("click", () => {
+      if (gameMode === "daily") {
+        showMessage("Daily mode cannot be restarted after it begins.");
+        return;
+      }
+
+      startGame("endless");
+    });
+
+    skipButton.addEventListener("click", skipWord);
+
+    sidebarButtons.forEach(button => {
+      button.addEventListener("click", () => handleSidebarClick(button));
+    });
+
+    saveScoreButton.addEventListener("click", openNameModal);
+    confirmSaveScoreButton.addEventListener("click", saveScoreAsGuest);
+    cancelSaveScoreButton.addEventListener("click", closeNameModal);
+
+    guestNameInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        saveScoreAsGuest();
+      }
+    });
+
+    scopeButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        scopeButtons.forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        leaderboardScope = button.dataset.scope;
+
+        if (leaderboardScope === "friends") {
+          friendsToggleNote.classList.remove("hidden");
+        } else {
+          friendsToggleNote.classList.add("hidden");
+        }
+
+        renderLeaderboard();
+      });
+    });
+
+    startGame("daily");
+
+  </script>
+</body>
+</html>
