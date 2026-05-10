@@ -1,36 +1,8 @@
-Word Rushle
+# Word Rushle
 
 Word Rushle is a web-based fun word puzzle game inspired by Wordle. Players complete survival-style word guessing rounds, earn points based on performance, and try to reach the highest score possible. The prototype includes Daily and Endless gameplay modes, score tracking, increasing difficulty, skips, and a database-backed leaderboard for saving, viewing, editing, and deleting player scores.
 
 Originally designed for COSC 412 – Software Engineering course at Towson University taught by Professor Jeff Tirschman
-
-## Features Included in This Prototype
-
-- Playable word puzzle gameplay
-- Daily mode
-- Endless mode
-- Score tracking
-- Round tracking
-- Skip system
-- Increasing difficulty as rounds progress
-- Best score and best round tracking
-- Run summary screen
-- Guest score saving
-- Leaderboard screen
-- SQLite database integration
-- Create, read, update, and delete leaderboard score records
-- Basic navigation sidebar
-- Word Rushle branding and interface layout
-
-## Technologies Used
-
-- HTML
-- CSS
-- JavaScript
-- Node.js
-- Express.js
-- SQLite
-- GitHub for version control
 
 ## How to Run the Application
 
@@ -63,6 +35,35 @@ http://localhost:3000
 Open a web browser and go to:
 
 http://localhost:3000
+
+
+## Features Included in This Prototype
+
+- Playable word puzzle gameplay
+- Daily mode
+- Endless mode
+- Score tracking
+- Round tracking
+- Skip system
+- Increasing difficulty as rounds progress
+- Best score and best round tracking
+- Run summary screen
+- Guest score saving
+- Leaderboard screen
+- SQLite database integration
+- Create, read, update, and delete leaderboard score records
+- Basic navigation sidebar
+- Word Rushle branding and interface layout
+
+## Technologies Used
+
+- HTML
+- CSS
+- JavaScript
+- Node.js
+- Express.js
+- SQLite
+- GitHub for version control
 
 ## Database Information
 
