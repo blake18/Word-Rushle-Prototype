@@ -307,13 +307,83 @@
       margin-top: 12px;
     }
 
+    #leaderboard-panel {
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    #leaderboard-panel h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    #leaderboard-columns {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      width: 100%;
+      align-items: start;
+    }
+
+    .leaderboard-section {
+      background: #121213;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .leaderboard-section h3 {
+      margin-top: 0;
+      margin-bottom: 4px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .leaderboard-description {
+      color: #c9c9c9;
+      font-size: 13px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
     .leaderboard-entry {
       display: grid;
-      grid-template-columns: 40px 1fr 80px 80px 90px 140px;
-      gap: 10px;
-      padding: 10px;
+      grid-template-columns: 32px minmax(0, 1fr) 64px 60px;
+      gap: 8px;
+      padding: 9px 6px;
       border-bottom: 1px solid #3a3a3c;
       text-align: left;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .leaderboard-entry.developer-actions-on {
+      grid-template-columns: 32px minmax(0, 1fr) 64px 60px 112px;
+    }
+
+    .leaderboard-entry span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .leaderboard-entry.header {
+      font-weight: bold;
+      color: #c9c9c9;
+    }
+
+    .leaderboard-empty {
+      color: #c9c9c9;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1050px) {
+      #leaderboard-columns {
+        grid-template-columns: 1fr;
+      }
     }
 
     .leaderboard-entry.header {
@@ -375,24 +445,318 @@
       color: white;
     }
 
+    #how-to-play-panel {
+      background: #1f1f21;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 680px;
+      width: 100%;
+    }
+
+    .info-card {
+      background: #121213;
+      border: 1px solid #3a3a3c;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .info-card h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .info-card p {
+      margin: 6px 0;
+      line-height: 1.5;
+      color: #e6e6e6;
+    }
+
+    .example-tile {
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      margin-right: 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .example-tile.correct {
+      background: #538d4e;
+    }
+
+    .example-tile.present {
+      background: #b59f3b;
+    }
+
+    .example-tile.absent {
+      background: #3a3a3c;
+    }
+
+    #auth-sidebar-actions {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .auth-sidebar-button {
+      border: none;
+      border-radius: 6px;
+      color: white;
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .login-auth-button {
+      background: #343436;
+      color: #f1f1f1;
+      border: 2px solid #538d4e;
+    }
+
+    .login-auth-button:hover {
+      background: #3a3a3c;
+      border-color: #6aaa64;
+    }
+
+    .signup-auth-button {
+      background: #2b2b2d;
+      color: #f1f1f1;
+      border: 2px solid #565758;
+    }
+
+    .signup-auth-button:hover {
+      background: #3a3a3c;
+      border-color: #6aaa64;
+    }
+
+    #auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 110;
+    }
+
+    #auth-modal.hidden {
+      display: none;
+    }
+
+    #auth-modal-box {
+      background: #1f1f21;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      min-width: 300px;
+      max-width: 360px;
+      width: 90%;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #3a3a3c;
+      border-radius: 4px;
+      background: #121213;
+      color: white;
+    }
+
+    #auth-modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    #auth-submit-button,
+    #auth-cancel-button {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #auth-submit-button {
+      background: #538d4e;
+      color: white;
+    }
+
+    #auth-submit-button:hover {
+      background: #6aaa64;
+    }
+
+    #auth-cancel-button {
+      background: white;
+      color: #121213;
+    }
+
+    #auth-modal-message {
+      min-height: 20px;
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    #auth-modal-message.success {
+      color: #6aaa64;
+    }
+
+    #auth-modal-message.error {
+      color: #e74c3c;
+    }
+
+    #logged-out-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #logged-out-actions.hidden {
+      display: none;
+    }
+
+    #logged-in-actions {
+      position: relative;
+    }
+
+    #logged-in-actions.hidden {
+      display: none;
+    }
+
+    #account-menu-button {
+      width: 100%;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      background: #2b2b2d;
+      color: white;
+      padding: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #account-menu-button:hover {
+      background: #3a3a3c;
+    }
+
+    #account-menu-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #account-menu-arrow {
+      margin-left: 8px;
+      color: #c9c9c9;
+    }
+
+    #account-popover {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 10px);
+      width: 100%;
+      background: #1f1f21;
+      border: 1px solid #3a3a3c;
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      z-index: 120;
+    }
+
+    #account-popover-label {
+      margin: 0 0 4px;
+      color: #c9c9c9;
+      font-size: 12px;
+    }
+
+    #account-popover-name {
+      margin: 0 0 12px;
+      color: white;
+      font-weight: bold;
+      overflow-wrap: break-word;
+    }
+
+    #logout-button {
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      background: #e74c3c;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #logout-button:hover {
+      background: #ff5c4d;
+    }
+
+    .leaderboard-section {
+      min-height: 360px;
+    }
+
+    main.leaderboard-view {
+      justify-content: flex-start;
+    }
+
 
   </style>
 </head>
 <body>
   <div id="app">
     <aside id="sidebar">
+      <div id="sidebar-title">Word Rushle</div>
 
       <button class="sidebar-button active" data-page="daily">Daily</button>
       <button class="sidebar-button" data-page="endless">Endless</button>
       <button class="sidebar-button" data-page="leaderboard">Leaderboard</button>
       <button class="sidebar-button" data-page="stats">Stats</button>
       <button class="sidebar-button" data-page="how-to-play">How to Play</button>
+
+      <div id="auth-sidebar-actions">
+        <div id="logged-out-actions">
+          <button id="sidebar-login-button" class="auth-sidebar-button login-auth-button" type="button">Log In</button>
+          <button id="sidebar-signup-button" class="auth-sidebar-button signup-auth-button" type="button">Sign Up</button>
+        </div>
+
+        <div id="logged-in-actions" class="hidden">
+          <button id="account-menu-button" type="button">
+            <span id="account-menu-name">Guest</span>
+            <span id="account-menu-arrow">▴</span>
+          </button>
+
+          <div id="account-popover" class="hidden">
+            <p id="account-popover-label">Signed in as</p>
+            <p id="account-popover-name">Guest</p>
+            <button id="logout-button" type="button">Log Out</button>
+          </div>
+        </div>
+      </div>
+
     </aside>
 
     <div id="content">
       <header>Word Rushle Prototype</header>
 
-  <main>
+  <main id="main-content">
     <div id="stats">
       <span>Skips: <strong id="skips">1</strong></span>
       <span>Score: <strong id="score">0</strong></span>
@@ -420,8 +784,42 @@
       <div id="score-saved-text" class="hidden">Score saved</div>
     </div>
 
+    <div id="how-to-play-panel" class="hidden">
+      <h2>How to Play</h2>
+
+      <div class="info-card">
+        <h3>Goal</h3>
+        <p>Guess as many 4-letter words as possible before your run ends.</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Tile Colors</h3>
+        <p><span class="example-tile correct">W</span> Green means the letter is correct and in the right spot.</p>
+        <p><span class="example-tile present">O</span> Yellow means the letter is in the word but in a different spot.</p>
+        <p><span class="example-tile absent">R</span> Gray means the letter is not in the word.</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Survival Rules</h3>
+        <p>Each correct word advances you to the next round. The game gets harder as your round increases.</p>
+        <p>You start with a limited number of skips. If you run out of guesses and have a skip, the word is skipped automatically.</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Scoring</h3>
+        <p>Each solved word gives 100 points plus a bonus for solving it with fewer guesses.</p>
+        <p>Reach higher rounds to earn bonus skips and climb the leaderboard.</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Daily vs Endless</h3>
+        <p><strong>Daily:</strong> Everyone gets the same seeded word sequence for the day.</p>
+        <p><strong>Endless:</strong> Words are randomly selected for replayable runs.</p>
+      </div>
+    </div>
+
     <div id="leaderboard-panel" class="hidden">
-      <h2>Leaderboard</h2>
+      <h2>Leaderboards</h2>
 
       <div id="leaderboard-scope-toggle">
         <button class="scope-button active" data-scope="global">Global</button>
@@ -432,7 +830,25 @@
         Friends filtering coming soon.
       </p>
 
-      <div id="leaderboard-list"></div>
+      <div id="leaderboard-columns">
+        <div class="leaderboard-section">
+          <h3>Today's Daily</h3>
+          <p class="leaderboard-description">Today’s Daily scores.</p>
+          <div id="today-leaderboard-list"></div>
+        </div>
+
+        <div class="leaderboard-section">
+          <h3>All-Time Daily</h3>
+          <p class="leaderboard-description">Best Daily scores.</p>
+          <div id="daily-alltime-leaderboard-list"></div>
+        </div>
+
+        <div class="leaderboard-section">
+          <h3>Endless</h3>
+          <p class="leaderboard-description">Best Endless scores.</p>
+          <div id="endless-leaderboard-list"></div>
+        </div>
+      </div>
     </div>
 
     <div id="name-modal" class="hidden">
@@ -443,6 +859,36 @@
           <button id="confirm-save-score">Save</button>
           <button id="cancel-save-score">Cancel</button>
         </div>
+      </div>
+    </div>
+
+    <div id="auth-modal" class="hidden">
+      <div id="auth-modal-box">
+        <h3 id="auth-modal-title">Log In</h3>
+
+        <input
+          id="auth-username-input"
+          class="auth-input"
+          type="text"
+          maxlength="20"
+          placeholder="Username"
+          autocomplete="username"
+        />
+
+        <input
+          id="auth-password-input"
+          class="auth-input"
+          type="password"
+          placeholder="Password"
+          autocomplete="current-password"
+        />
+
+        <div id="auth-modal-buttons">
+          <button id="auth-submit-button" type="button">Log In</button>
+          <button id="auth-cancel-button" type="button">Cancel</button>
+        </div>
+
+        <div id="auth-modal-message"></div>
       </div>
     </div>
 
@@ -502,6 +948,7 @@
     let bestRound = Number(localStorage.getItem("bestRound")) || 1;
   
 
+    const mainContent = document.getElementById("main-content");
     const board = document.getElementById("board");
     const keyboard = document.getElementById("keyboard");
     const message = document.getElementById("message");
@@ -532,13 +979,40 @@
     const confirmSaveScoreButton = document.getElementById("confirm-save-score");
     const cancelSaveScoreButton = document.getElementById("cancel-save-score");
 
+    const sidebarLoginButton = document.getElementById("sidebar-login-button");
+    const sidebarSignupButton = document.getElementById("sidebar-signup-button");
+
+    const loggedOutActions = document.getElementById("logged-out-actions");
+    const loggedInActions = document.getElementById("logged-in-actions");
+    const accountMenuButton = document.getElementById("account-menu-button");
+    const accountMenuName = document.getElementById("account-menu-name");
+    const accountPopover = document.getElementById("account-popover");
+    const accountPopoverName = document.getElementById("account-popover-name");
+    const logoutButton = document.getElementById("logout-button");
+
+    const authModal = document.getElementById("auth-modal");
+    const authModalTitle = document.getElementById("auth-modal-title");
+    const authUsernameInput = document.getElementById("auth-username-input");
+    const authPasswordInput = document.getElementById("auth-password-input");
+    const authSubmitButton = document.getElementById("auth-submit-button");
+    const authCancelButton = document.getElementById("auth-cancel-button");
+    const authModalMessage = document.getElementById("auth-modal-message");
+
+    let authMode = "login";
+
+    const howToPlayPanel = document.getElementById("how-to-play-panel");
+
     const leaderboardPanel = document.getElementById("leaderboard-panel");
-    const leaderboardList = document.getElementById("leaderboard-list");
+    const todayLeaderboardList = document.getElementById("today-leaderboard-list");
+    const dailyAllTimeLeaderboardList = document.getElementById("daily-alltime-leaderboard-list");
+    const endlessLeaderboardList = document.getElementById("endless-leaderboard-list");
+
     const scopeButtons = document.querySelectorAll(".scope-button");
     const friendsToggleNote = document.getElementById("friends-toggle-note");
     let leaderboardScope = "global";
 
     let devToolsVisible = false;
+    let leaderboardDeveloperActionsVisible = false;
     let gameMode = "daily";
 
     let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
@@ -1046,16 +1520,19 @@
       const page = button.dataset.page;
 
       if (page === "daily") {
+        hideAllPanels();
         startGame("daily");
       } else if (page === "endless") {
+        hideAllPanels();
         startGame("endless");
       } else if (page === "leaderboard") {
         showLeaderboardPanel();
+      } else if (page === "how-to-play") {
+        showHowToPlayPanel();
       } else {
-          setGameUIVisible(false);
-          runSummary.classList.add("hidden");
-          leaderboardPanel.classList.add("hidden");
-          showMessage(`${button.textContent} page coming soon.`);
+        setGameUIVisible(false);
+        hideAllPanels();
+        showMessage(`${button.textContent} page coming soon.`);
       }
     }
 
@@ -1067,6 +1544,114 @@
 
     function closeNameModal() {
       nameModal.classList.add("hidden");
+    }
+
+    function openAuthModal(mode) {
+      authMode = mode;
+
+      authUsernameInput.value = "";
+      authPasswordInput.value = "";
+      showAuthMessage("", "");
+
+      if (authMode === "signup") {
+        authModalTitle.textContent = "Sign Up";
+        authSubmitButton.textContent = "Create Account";
+      } else {
+        authModalTitle.textContent = "Log In";
+        authSubmitButton.textContent = "Log In";
+      }
+
+      authModal.classList.remove("hidden");
+      authUsernameInput.focus();
+    }
+
+    function closeAuthModal() {
+      authModal.classList.add("hidden");
+    }
+
+    function showAuthMessage(text, type) {
+      authModalMessage.textContent = text;
+      authModalMessage.classList.remove("success", "error");
+
+      if (type) {
+        authModalMessage.classList.add(type);
+      }
+    }
+
+    async function handleAuthSubmit() {
+      const username = authUsernameInput.value.trim().toLowerCase();
+      const password = authPasswordInput.value.trim();
+
+      showAuthMessage("", "");
+
+      if (!username || !password) {
+        showAuthMessage("Please enter a username and password.", "error");
+        return;
+      }
+
+      if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        showAuthMessage("Username must be 3-20 characters: letters, numbers, or underscores.", "error");
+        return;
+      }
+
+      if (password.length < 4) {
+        showAuthMessage("Password must be at least 4 characters.", "error");
+        return;
+      }
+
+      const url = authMode === "signup"
+        ? "/api/auth/register"
+        : "/api/auth/login";
+
+      try {
+        authSubmitButton.disabled = true;
+
+        showAuthMessage(
+          authMode === "signup" ? "Creating account..." : "Logging in...",
+          ""
+        );
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Auth request failed.");
+        }
+
+        if (authMode === "signup") {
+          authUsernameInput.value = "";
+          authPasswordInput.value = "";
+          showAuthMessage("Account created! You can now log in.", "success");
+          return;
+        }
+
+        currentUser = data.user;
+        playerName = currentUser.displayName;
+
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        localStorage.setItem("playerName", playerName);
+
+        summaryPlayer.textContent = playerName;
+
+        updateAuthSidebar();
+
+        closeAuthModal();
+      } catch (error) {
+        console.error(error);
+        showAuthMessage(error.message, "error");
+      } finally {
+        authSubmitButton.disabled = false;
+      }
     }
 
     async function saveScoreForLoggedInUser() {
@@ -1154,11 +1739,34 @@
       }
     }
 
+    function hideAllPanels() {
+      mainContent.classList.remove("leaderboard-view");
+
+      runSummary.classList.add("hidden");
+      leaderboardPanel.classList.add("hidden");
+
+      if (typeof accountPanel !== "undefined" && accountPanel) {
+        accountPanel.classList.add("hidden");
+      }
+
+      if (typeof howToPlayPanel !== "undefined" && howToPlayPanel) {
+        howToPlayPanel.classList.add("hidden");
+      }
+    }
+
     function showLeaderboardPanel() {
       setGameUIVisible(false);
-      runSummary.classList.add("hidden");
+      hideAllPanels();
+      mainContent.classList.add("leaderboard-view");
       leaderboardPanel.classList.remove("hidden");
       renderLeaderboard();
+      showMessage("");
+    }
+
+    function showHowToPlayPanel() {
+      setGameUIVisible(false);
+      hideAllPanels();
+      howToPlayPanel.classList.remove("hidden");
       showMessage("");
     }
     
@@ -1186,50 +1794,155 @@
       localStorage.setItem("leaderboardScores", JSON.stringify(topScores));
     }
 
-    async function renderLeaderboard() {
-      try {
-        const response = await fetch("/api/scores");
+    function getScoreDate(entry) {
+      if (entry.createdAt) {
+        return new Date(entry.createdAt);
+      }
 
-        if (!response.ok) {
-          throw new Error("Failed to load leaderboard.");
+      if (entry.date) {
+        return new Date(entry.date);
+      }
+
+      if (entry._id && entry._id.length >= 8) {
+        const timestamp = parseInt(entry._id.substring(0, 8), 16) * 1000;
+        return new Date(timestamp);
+      }
+
+      return null;
+    }
+
+    function getDateKey(date) {
+      if (!date) return "";
+
+      return date.toISOString().split("T")[0];
+    }
+
+    function isScoreFromToday(entry) {
+      const scoreDate = getScoreDate(entry);
+      const todayKey = getDateKey(new Date());
+
+      return getDateKey(scoreDate) === todayKey;
+    }
+
+    function getRoundReached(entry) {
+      return entry.roundReached || entry.round || 1;
+    }
+
+    function sortScoresHighToLow(scores) {
+      return scores.sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score;
         }
 
-        const savedScores = await response.json();
+        return getRoundReached(b) - getRoundReached(a);
+      });
+    }
 
-        if (savedScores.length === 0) {
-          leaderboardList.innerHTML = `<p class="leaderboard-empty">No scores saved yet.</p>`;
+    function getBestScorePerPlayer(scores) {
+      const bestScores = {};
+
+      scores.forEach(entry => {
+        const playerKey = entry.userId || entry.playerName;
+
+        if (!bestScores[playerKey]) {
+          bestScores[playerKey] = entry;
           return;
         }
 
-        leaderboardList.innerHTML = `
+        const currentBest = bestScores[playerKey];
+
+        const entryIsBetter =
+          entry.score > currentBest.score ||
+          (
+            entry.score === currentBest.score &&
+            getRoundReached(entry) > getRoundReached(currentBest)
+          );
+
+        if (entryIsBetter) {
+          bestScores[playerKey] = entry;
+        }
+      });
+
+      return Object.values(bestScores);
+    }
+
+    function renderLeaderboardList(listElement, scores) {
+      const topScores = scores.slice(0, 10);
+
+      if (topScores.length === 0) {
+        listElement.innerHTML = `<p class="leaderboard-empty">No scores saved yet.</p>`;
+        return;
+      }
+
+      if (leaderboardDeveloperActionsVisible) {
+        listElement.innerHTML = `
+          <div class="leaderboard-entry developer-actions-on header">
+            <span>#</span>
+            <span>Player</span>
+            <span>Score</span>
+            <span>Round</span>
+            <span>Dev</span>
+          </div>
+        `;
+      } else {
+        listElement.innerHTML = `
           <div class="leaderboard-entry header">
             <span>#</span>
             <span>Player</span>
             <span>Score</span>
             <span>Round</span>
-            <span>Mode</span>
-            <span>Actions</span>
           </div>
         `;
+      }
 
-        savedScores.forEach((entry, index) => {
-          leaderboardList.innerHTML += `
-            <div class="leaderboard-entry">
+      topScores.forEach((entry, index) => {
+        const safePlayerName = String(entry.playerName).replaceAll("'", "\\'");
+
+        if (leaderboardDeveloperActionsVisible) {
+          listElement.innerHTML += `
+            <div class="leaderboard-entry developer-actions-on">
               <span>${index + 1}</span>
               <span>${entry.playerName}</span>
               <span>${entry.score}</span>
-              <span>${entry.roundReached}</span>
-              <span>${entry.mode}</span>
+              <span>${getRoundReached(entry)}</span>
               <span>
-                <button class="leaderboard-action" onclick="editScoreName('${entry._id}', '${entry.playerName}')">Edit</button>
+                <button class="leaderboard-action" onclick="editScoreName('${entry._id}', '${safePlayerName}')">Edit</button>
                 <button class="leaderboard-action danger-button" onclick="deleteScore('${entry._id}')">Delete</button>
               </span>
             </div>
           `;
-        });
+        } else {
+          listElement.innerHTML += `
+            <div class="leaderboard-entry">
+              <span>${index + 1}</span>
+              <span>${entry.playerName}</span>
+              <span>${entry.score}</span>
+              <span>${getRoundReached(entry)}</span>
+            </div>
+          `;
+        }
+      });
+    }
+
+    async function renderLeaderboard() {
+      try {
+        const response = await fetch("/api/leaderboards");
+
+        if (!response.ok) {
+          throw new Error("Failed to load leaderboards.");
+        }
+
+        const leaderboards = await response.json();
+
+        renderLeaderboardList(todayLeaderboardList, leaderboards.todayDaily);
+        renderLeaderboardList(dailyAllTimeLeaderboardList, leaderboards.allTimeDaily);
+        renderLeaderboardList(endlessLeaderboardList, leaderboards.endless);
       } catch (error) {
         console.error(error);
-        leaderboardList.innerHTML = `<p class="leaderboard-empty">Could not load leaderboard.</p>`;
+
+        todayLeaderboardList.innerHTML = `<p class="leaderboard-empty">Could not load leaderboard.</p>`;
+        dailyAllTimeLeaderboardList.innerHTML = `<p class="leaderboard-empty">Could not load leaderboard.</p>`;
+        endlessLeaderboardList.innerHTML = `<p class="leaderboard-empty">Could not load leaderboard.</p>`;
       }
     }
 
@@ -1260,11 +1973,9 @@
           throw new Error("Failed to update score.");
         }
 
-        showMessage("Score updated.");
         renderLeaderboard();
       } catch (error) {
         console.error(error);
-        showMessage("Could not update score.");
       }
     }
 
@@ -1284,12 +1995,47 @@
           throw new Error("Failed to delete score.");
         }
 
-        showMessage("Score deleted.");
         renderLeaderboard();
       } catch (error) {
         console.error(error);
-        showMessage("Could not delete score.");
       }
+    }
+
+    function updateAuthSidebar() {
+      currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+
+      if (currentUser) {
+        const displayName = currentUser.displayName || currentUser.username || "Player";
+
+        loggedOutActions.classList.add("hidden");
+        loggedInActions.classList.remove("hidden");
+
+        accountMenuName.textContent = displayName;
+        accountPopoverName.textContent = displayName;
+      } else {
+        loggedOutActions.classList.remove("hidden");
+        loggedInActions.classList.add("hidden");
+        accountPopover.classList.add("hidden");
+      }
+    }
+
+    function toggleAccountPopover() {
+      accountPopover.classList.toggle("hidden");
+    }
+
+    function closeAccountPopover() {
+      accountPopover.classList.add("hidden");
+    }
+
+    function logoutUser() {
+      localStorage.removeItem("currentUser");
+
+      currentUser = null;
+      playerName = "Guest";
+      localStorage.setItem("playerName", playerName);
+
+      closeAccountPopover();
+      updateAuthSidebar();
     }
 
     document.addEventListener("keydown", event => {
@@ -1299,11 +2045,18 @@
         }
       
       if (event.ctrlKey && event.shiftKey && event.key.toUpperCase() === "D") {
-          devToolsVisible = !devToolsVisible;
-          devTools.classList.toggle("hidden", !devToolsVisible);
-          updateAnswerDisplay();
-          return;
+        devToolsVisible = !devToolsVisible;
+        leaderboardDeveloperActionsVisible = devToolsVisible;
+
+        devTools.classList.toggle("hidden", !devToolsVisible);
+        updateAnswerDisplay();
+
+        if (!leaderboardPanel.classList.contains("hidden")) {
+          renderLeaderboard();
         }
+
+        return;
+      }
 
       if (event.ctrlKey && event.shiftKey && event.key.toUpperCase() === "R") {
         resetDailyRunForTesting();
@@ -1343,6 +2096,49 @@
       button.addEventListener("click", () => handleSidebarClick(button));
     });
 
+    sidebarLoginButton.addEventListener("click", () => {
+      openAuthModal("login");
+    });
+
+    sidebarSignupButton.addEventListener("click", () => {
+      openAuthModal("signup");
+    });
+
+    authCancelButton.addEventListener("click", closeAuthModal);
+
+    authSubmitButton.addEventListener("click", handleAuthSubmit);
+
+    authModal.addEventListener("click", event => {
+      if (event.target === authModal) {
+        closeAuthModal();
+      }
+    });
+
+    authPasswordInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        handleAuthSubmit();
+      }
+    });
+
+    accountMenuButton.addEventListener("click", event => {
+      event.stopPropagation();
+      toggleAccountPopover();
+    });
+
+    logoutButton.addEventListener("click", () => {
+      logoutUser();
+    });
+
+    document.addEventListener("click", event => {
+      if (!accountPopover.classList.contains("hidden")) {
+        const clickedInsideAccountArea = loggedInActions.contains(event.target);
+
+        if (!clickedInsideAccountArea) {
+          closeAccountPopover();
+        }
+      }
+    });
+
     saveScoreButton.addEventListener("click", () => {
       currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
 
@@ -1379,6 +2175,7 @@
       });
     });
 
+    updateAuthSidebar();
     startGame("daily");
 
   </script>

@@ -131,6 +131,16 @@ const wordSchema = new mongoose.Schema(
 
 const Word = mongoose.model("Word", wordSchema);
 
+function getTodayDateRange() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  return { start, end };
+}
+
 // Health check route
 app.get("/api/health", (req, res) => {
   res.json({ message: "Word Rushle API is running." });
@@ -505,6 +515,112 @@ app.get("/api/scores", async (req, res) => {
   } catch (error) {
     console.error("Failed to load scores:", error.message);
     res.status(500).json({ error: "Failed to load scores." });
+  }
+});
+
+// READ: Load separated leaderboards
+app.get("/api/leaderboards", async (req, res) => {
+  try {
+    const { start, end } = getTodayDateRange();
+
+    const todayDaily = await Score.find({
+      mode: "daily",
+      createdAt: {
+        $gte: start,
+        $lt: end
+      }
+    })
+      .sort({ score: -1, roundReached: -1, createdAt: 1 })
+      .limit(10);
+
+    const allTimeDaily = await Score.aggregate([
+      {
+        $match: {
+          mode: "daily"
+        }
+      },
+      {
+        $sort: {
+          score: -1,
+          roundReached: -1,
+          createdAt: 1
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $ifNull: ["$userId", "$playerName"]
+          },
+          bestScore: {
+            $first: "$$ROOT"
+          }
+        }
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$bestScore"
+        }
+      },
+      {
+        $sort: {
+          score: -1,
+          roundReached: -1,
+          createdAt: 1
+        }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
+    const endless = await Score.aggregate([
+      {
+        $match: {
+          mode: "endless"
+        }
+      },
+      {
+        $sort: {
+          score: -1,
+          roundReached: -1,
+          createdAt: 1
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $ifNull: ["$userId", "$playerName"]
+          },
+          bestScore: {
+            $first: "$$ROOT"
+          }
+        }
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$bestScore"
+        }
+      },
+      {
+        $sort: {
+          score: -1,
+          roundReached: -1,
+          createdAt: 1
+        }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
+    res.json({
+      todayDaily,
+      allTimeDaily,
+      endless
+    });
+  } catch (error) {
+    console.error("Failed to load leaderboards:", error.message);
+    res.status(500).json({ error: "Failed to load leaderboards." });
   }
 });
 
