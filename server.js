@@ -7,6 +7,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
 require("dotenv").config();
 
 const app = express();
@@ -35,7 +36,12 @@ const scoreSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 16
+      maxlength: 20
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
     },
     score: {
       type: Number,
@@ -60,6 +66,34 @@ const scoreSchema = new mongoose.Schema(
 
 const Score = mongoose.model("Score", scoreSchema);
 
+// User model
+const userSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 20
+    },
+    displayName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 20
+    },
+    passwordHash: {
+      type: String,
+      required: true
+    }
+  },
+  {
+    timestamps: true
+  }
+);
+
+const User = mongoose.model("User", userSchema);
 
 // Word model
 const wordSchema = new mongoose.Schema(
@@ -102,20 +136,180 @@ app.get("/api/health", (req, res) => {
   res.json({ message: "Word Rushle API is running." });
 });
 
+// AUTH: Register a new user account
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { username, password, displayName } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required." });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+    const cleanDisplayName = cleanUsername;
+
+    if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) {
+      return res.status(400).json({
+        error: "Username must be 3-20 characters and use only letters, numbers, or underscores."
+      });
+    }
+
+    if (password.length < 4) {
+      return res.status(400).json({
+        error: "Password must be at least 4 characters for this prototype."
+      });
+    }
+
+    const existingUser = await User.findOne({ username: cleanUsername });
+
+    if (existingUser) {
+      return res.status(409).json({ error: "Username is already taken." });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
+      username: cleanUsername,
+      displayName: cleanDisplayName,
+      passwordHash
+    });
+
+    res.status(201).json({
+      message: "Account created successfully.",
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        displayName: newUser.displayName
+      }
+    });
+  } catch (error) {
+    console.error("Failed to register user:", error.message);
+    res.status(500).json({ error: "Failed to register user." });
+  }
+});
+
+// AUTH: Login to an existing account
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required." });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+
+    const user = await User.findOne({ username: cleanUsername });
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid username or password." });
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+
+    if (!passwordMatches) {
+      return res.status(401).json({ error: "Invalid username or password." });
+    }
+
+    res.json({
+      message: "Login successful.",
+      user: {
+        id: user._id,
+        username: user.username,
+        displayName: user.displayName
+      }
+    });
+  } catch (error) {
+    console.error("Failed to login:", error.message);
+    res.status(500).json({ error: "Failed to login." });
+  }
+});
+
+// USERS: Get stats for a user account
+app.get("/api/users/:id/stats", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const scores = await Score.find({ userId: user._id }).sort({ createdAt: -1 });
+
+    const gamesPlayed = scores.length;
+    const bestScore = scores.length > 0
+      ? Math.max(...scores.map(score => score.score))
+      : 0;
+    const bestRound = scores.length > 0
+      ? Math.max(...scores.map(score => score.roundReached))
+      : 0;
+    const averageScore = scores.length > 0
+      ? Math.round(scores.reduce((sum, score) => sum + score.score, 0) / scores.length)
+      : 0;
+    const dailyRuns = scores.filter(score => score.mode === "daily").length;
+    const endlessRuns = scores.filter(score => score.mode === "endless").length;
+
+    res.json({
+      user: {
+        id: user._id,
+        username: user.username,
+        displayName: user.displayName
+      },
+      stats: {
+        gamesPlayed,
+        bestScore,
+        bestRound,
+        averageScore,
+        dailyRuns,
+        endlessRuns
+      },
+      recentScores: scores.slice(0, 10)
+    });
+  } catch (error) {
+    console.error("Failed to load user stats:", error.message);
+    res.status(500).json({ error: "Failed to load user stats." });
+  }
+});
+
 // Converts a string into a repeatable numeric seed.
-// Used so Daily mode can choose the same word for the same date and round.
-function getSeededIndex(seedText, max) {
+// Used so Daily mode can create the same shuffled word order for the same date.
+function getNumericSeed(seedText) {
   let hash = 0;
 
   for (let i = 0; i < seedText.length; i++) {
     hash = (hash * 31 + seedText.charCodeAt(i)) >>> 0;
   }
 
-  return hash % max;
+  return hash;
+}
+
+// Repeatable pseudo-random number generator.
+// Same seed always produces the same sequence of numbers.
+function seededRandom(seed) {
+  let value = seed;
+
+  return function () {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    return value / 4294967296;
+  };
+}
+
+// Creates a repeatable shuffled copy of an array using a seeded random generator.
+function seededShuffle(items, seedText) {
+  const shuffled = [...items];
+  const random = seededRandom(getNumericSeed(seedText));
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
 }
 
 // WORDS: Get the seeded Daily answer for a specific round.
-// The same date and round number will always return the same word.
+// The same date and round number will always return the same word,
+// but the full daily sequence is shuffled to avoid obvious letter streaks. (Thanks Kiev and Hamza for noticing this)
 app.get("/api/words/daily-answer", async (req, res) => {
   try {
     const round = Number(req.query.round) || 1;
@@ -136,9 +330,8 @@ app.get("/api/words/daily-answer", async (req, res) => {
       return res.status(404).json({ error: "No answer words found." });
     }
 
-    const seedText = `${todayKey}-round-${round}`;
-    const wordIndex = getSeededIndex(seedText, answerWords.length);
-    const selectedWord = answerWords[wordIndex];
+    const shuffledWords = seededShuffle(answerWords, todayKey);
+    const selectedWord = shuffledWords[(round - 1) % shuffledWords.length];
 
     res.json({
       word: selectedWord.word,
@@ -150,7 +343,6 @@ app.get("/api/words/daily-answer", async (req, res) => {
     res.status(500).json({ error: "Failed to get daily answer word." });
   }
 });
-
 
 // WORDS: Get a random active answer word
 app.get("/api/words/random-answer", async (req, res) => {
@@ -265,14 +457,27 @@ app.post("/api/words", async (req, res) => {
 // CREATE: Save a score
 app.post("/api/scores", async (req, res) => {
   try {
-    const { playerName, score, round, mode } = req.body;
+    const { playerName, score, round, mode, userId } = req.body;
 
     if (!playerName || typeof score !== "number" || typeof round !== "number" || !mode) {
       return res.status(400).json({ error: "Missing or invalid score data." });
     }
 
+    let linkedUserId = null;
+
+    if (userId) {
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(400).json({ error: "User account not found." });
+      }
+
+      linkedUserId = user._id;
+    }
+
     const newScore = await Score.create({
       playerName,
+      userId: linkedUserId,
       score,
       roundReached: round,
       mode
@@ -280,7 +485,8 @@ app.post("/api/scores", async (req, res) => {
 
     res.status(201).json({
       message: "Score saved successfully.",
-      scoreId: newScore._id
+      scoreId: newScore._id,
+      userId: linkedUserId
     });
   } catch (error) {
     console.error("Failed to save score:", error.message);

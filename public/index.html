@@ -381,7 +381,6 @@
 <body>
   <div id="app">
     <aside id="sidebar">
-      <div id="sidebar-title">Word Rushle</div>
 
       <button class="sidebar-button active" data-page="daily">Daily</button>
       <button class="sidebar-button" data-page="endless">Endless</button>
@@ -515,7 +514,7 @@
     const bestRoundDisplay = document.getElementById("best-round");
     const devTools = document.getElementById("dev-tools");
     const answerDisplay = document.getElementById("answer-display");
-    const sidebarButtons = document.querySelectorAll(".sidebar-button");
+    const sidebarButtons = document.querySelectorAll(".sidebar-button")
     
     const runSummary = document.getElementById("run-summary");
     const summaryMode = document.getElementById("summary-mode");
@@ -542,9 +541,9 @@
     let devToolsVisible = false;
     let gameMode = "daily";
 
-    let playerName = localStorage.getItem("playerName") || "Guest";
+    let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+    let playerName = currentUser?.displayName || localStorage.getItem("playerName") || "Guest";
     let scoreSaved = false;
-
     
     function startGame(mode = gameMode) {
       gameMode = mode;
@@ -944,6 +943,9 @@
     }
 
     function showRunSummary() {
+      currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+      playerName = currentUser?.displayName || localStorage.getItem("playerName") || "Guest";
+
       summaryPlayer.textContent = playerName;
       summaryMode.textContent = gameMode === "daily" ? "Daily" : "Endless";
       summaryScore.textContent = score;
@@ -1065,6 +1067,48 @@
 
     function closeNameModal() {
       nameModal.classList.add("hidden");
+    }
+
+    async function saveScoreForLoggedInUser() {
+      if (!currentUser) {
+        openNameModal();
+        return;
+      }
+
+      const scoreData = {
+        playerName: currentUser.displayName,
+        userId: currentUser.id,
+        score: score,
+        round: round,
+        mode: gameMode
+      };
+
+      try {
+        const response = await fetch("/api/scores", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(scoreData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Score failed to save.");
+        }
+
+        scoreSaved = true;
+        playerName = currentUser.displayName;
+        summaryPlayer.textContent = playerName;
+        saveScoreButton.classList.add("hidden");
+        scoreSavedText.classList.remove("hidden");
+
+        showMessage("Score saved to your account.");
+      } catch (error) {
+        console.error(error);
+        showMessage("Could not save score to account. Make sure the server is running.");
+      }
     }
 
     async function saveScoreAsGuest() {
@@ -1299,7 +1343,16 @@
       button.addEventListener("click", () => handleSidebarClick(button));
     });
 
-    saveScoreButton.addEventListener("click", openNameModal);
+    saveScoreButton.addEventListener("click", () => {
+      currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+
+      if (currentUser) {
+        saveScoreForLoggedInUser();
+      } else {
+        openNameModal();
+      }
+    });
+
     confirmSaveScoreButton.addEventListener("click", saveScoreAsGuest);
     cancelSaveScoreButton.addEventListener("click", closeNameModal);
 
