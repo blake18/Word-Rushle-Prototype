@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "seed:small-words": "node scripts/seedSmallWords.js",
+    "seed:large-words": "node scripts/seedLargeWords.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,12 +22,13 @@
   },
   "homepage": "https://github.com/blake18/Word-Rushle-Prototype#readme",
   "dependencies": {
+    "an-array-of-english-words": "^2.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.6.2"
-    },
-    "engines": {
-      "node": ">=22.0.0 <23.0.0"
-    }
+  },
+  "engines": {
+    "node": ">=22.0.0 <23.0.0"
+  }
 }
