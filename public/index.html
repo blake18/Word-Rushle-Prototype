@@ -464,11 +464,17 @@
 
   
     // Words now* come from the backend database through API routes. WOOOOOOOOAH
-    async function fetchRandomAnswer() {
-      const response = await fetch("/api/words/random-answer");
+    async function fetchAnswerForRound() {
+      let url = "/api/words/random-answer";
+
+      if (gameMode === "daily") {
+        url = `/api/words/daily-answer?round=${round}`;
+      }
+
+      const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error("Failed to load random answer.");
+        throw new Error("Failed to load answer.");
       }
 
       const data = await response.json();
@@ -571,7 +577,7 @@
 
     async function startRound() {
     try {
-      answer = await fetchRandomAnswer();
+      answer = await fetchAnswerForRound();
       currentRow = 0;
       currentGuess = "";
       message.textContent = "";

@@ -102,6 +102,56 @@ app.get("/api/health", (req, res) => {
   res.json({ message: "Word Rushle API is running." });
 });
 
+// Converts a string into a repeatable numeric seed.
+// Used so Daily mode can choose the same word for the same date and round.
+function getSeededIndex(seedText, max) {
+  let hash = 0;
+
+  for (let i = 0; i < seedText.length; i++) {
+    hash = (hash * 31 + seedText.charCodeAt(i)) >>> 0;
+  }
+
+  return hash % max;
+}
+
+// WORDS: Get the seeded Daily answer for a specific round.
+// The same date and round number will always return the same word.
+app.get("/api/words/daily-answer", async (req, res) => {
+  try {
+    const round = Number(req.query.round) || 1;
+
+    if (round < 1) {
+      return res.status(400).json({ error: "Round must be at least 1." });
+    }
+
+    const todayKey = new Date().toISOString().split("T")[0];
+
+    const answerWords = await Word.find({
+      length: 4,
+      isAnswer: true,
+      active: true
+    }).sort({ word: 1 });
+
+    if (answerWords.length === 0) {
+      return res.status(404).json({ error: "No answer words found." });
+    }
+
+    const seedText = `${todayKey}-round-${round}`;
+    const wordIndex = getSeededIndex(seedText, answerWords.length);
+    const selectedWord = answerWords[wordIndex];
+
+    res.json({
+      word: selectedWord.word,
+      date: todayKey,
+      round: round
+    });
+  } catch (error) {
+    console.error("Failed to get daily answer word:", error.message);
+    res.status(500).json({ error: "Failed to get daily answer word." });
+  }
+});
+
+
 // WORDS: Get a random active answer word
 app.get("/api/words/random-answer", async (req, res) => {
   try {
