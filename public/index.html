@@ -1140,13 +1140,13 @@
           leaderboardList.innerHTML += `
             <div class="leaderboard-entry">
               <span>${index + 1}</span>
-              <span>${entry.player_name}</span>
+              <span>${entry.playerName}</span>
               <span>${entry.score}</span>
-              <span>${entry.round_reached}</span>
+              <span>${entry.roundReached}</span>
               <span>${entry.mode}</span>
               <span>
-                <button class="leaderboard-action" onclick="editScoreName(${entry.id}, '${entry.player_name}')">Edit</button>
-                <button class="leaderboard-action danger-button" onclick="deleteScore(${entry.id})">Delete</button>
+                <button class="leaderboard-action" onclick="editScoreName('${entry._id}', '${entry.playerName}')">Edit</button>
+                <button class="leaderboard-action danger-button" onclick="deleteScore('${entry._id}')">Delete</button>
               </span>
             </div>
           `;
