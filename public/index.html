@@ -462,17 +462,29 @@
     const STARTING_SKIPS = 1;
     const SKIP_REWARD_INTERVAL = 5;
 
-    // Small starter word list. Later, this can come from a database.
-    const WORDS = [
-      "ABLE", "BAKE", "BARK", "BIRD", "BLUE",
-      "BOAT", "BOLD", "BOND", "CAMP", "CARD",
-      "COLD", "DARK", "DUST", "FIRE", "FISH",
-      "GAME", "GOLD", "HAND", "HARD", "JUMP",
-      "KING", "LAMP", "LAND", "LEAF", "MOON",
-      "PATH", "PLAY", "RING", "ROAD", "ROCK",
-      "SHIP", "SNOW", "STAR", "TIME", "TREE",
-      "WIND", "WOLF", "WORD", "WORK", "ZONE"
-    ];
+  
+    // Words now* come from the backend database through API routes. WOOOOOOOOAH
+    async function fetchRandomAnswer() {
+      const response = await fetch("/api/words/random-answer");
+
+      if (!response.ok) {
+        throw new Error("Failed to load random answer.");
+      }
+
+      const data = await response.json();
+      return data.word;
+    }
+
+    async function validateGuess(guess) {
+      const response = await fetch(`/api/words/validate/${guess}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to validate guess.");
+      }
+
+      const data = await response.json();
+      return data.valid;
+    }
 
     let answer = "";
     let currentRow = 0;
@@ -483,8 +495,7 @@
     let round = 1;
     let bestScore = Number(localStorage.getItem("bestScore")) || 0;
     let bestRound = Number(localStorage.getItem("bestRound")) || 1;
-    let usedAnswers = [];
-    
+  
 
     const board = document.getElementById("board");
     const keyboard = document.getElementById("keyboard");
@@ -558,8 +569,9 @@
       startRound();
     }
 
-    function startRound() {
-      answer = getRandomWord();
+    async function startRound() {
+    try {
+      answer = await fetchRandomAnswer();
       currentRow = 0;
       currentGuess = "";
       message.textContent = "";
@@ -572,7 +584,13 @@
       createKeyboard();
 
       console.log("Answer:", answer); // Helpful while testing. Remove later.
+    } catch (error) {
+      console.error(error);
+      gameOver = true;
+      showMessage("Could not load word from database. Make sure the server is running.");
+      setGameUIVisible(false);
     }
+  }
 
     function getRandomWord() {
       if (usedAnswers.length === WORDS.length) {
@@ -797,14 +815,22 @@
       }
     }
 
-    function submitGuess() {
+    async function submitGuess() {
       if (currentGuess.length !== WORD_LENGTH) {
         showMessage("Not enough letters");
         return;
       }
 
-      if (!WORDS.includes(currentGuess)) {
-        showMessage("Word not in list");
+      try {
+        const isValidWord = await validateGuess(currentGuess);
+
+        if (!isValidWord) {
+          showMessage("Word not in list");
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+        showMessage("Could not validate word. Make sure the server is running.");
         return;
       }
 
